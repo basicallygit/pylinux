@@ -6,6 +6,7 @@ import random
 from time import sleep
 import shutil
 from socket import gethostname
+from string import printable
 userisroot=False
 homefolder=os.getcwd()
 rootpasspath=os.path.join("C:\\Users\\{0}".format(getuser()),"root.txt")
@@ -36,7 +37,9 @@ def whoami():
     print(checkuser())
 def neofetch():
     print("""
---neofetch here--                               
+neofetch    {}@shell
+art goes
+here                               
 """.format(checkuser()))
 def ifconfig():
     print(subprocess.check_output("ipconfig" ).decode('utf-8'))
@@ -134,18 +137,15 @@ def rm(rmparams):
     rmtype=rmparams.split()[0]
     if rmtype == "-f":
         try:
-            cwd=os.getcwd()
-            rmpath=os.path.join(cwd, rmparams.split(" ", 1)[-1])
+            rmpath=os.path.join(os.getcwd(), rmparams.split(" ", 1)[-1])
             os.remove(rmpath)
         except:
             print("Cannot find / remove file: ", rmparams.split(" ",1 )[-1])
     elif rmtype == "-d":
         try:
             if "y" in input("Are you sure? [Y/n]: ").lower():
-                cwd=os.getcwd()
-                dirpath=os.path.join(cwd, rmparams.split(" ", 1)[-1])
-                os.rmdir(dirpath)
-                print("Removed directory:", rmparams.split(" ", 1)[-1])
+                rmpath=os.path.join(os.getcwd(), rmparams.split(" ", 1)[-1])
+                shutil.rmtree(rmpath)
         except:
             print("Cannot find / remove directory: ", rmparams.split(" ", 1)[-1])
     else:
@@ -221,6 +221,22 @@ def echo(args):
         else:
             with open(os.path.join(os.getcwd(), filename), "w+") as echofile:
                 echofile.write(towrite)
+def strings(filename):
+	if os.path.isfile(os.path.join(os.getcwd(), filename)):
+		try:
+			with open(os.path.join(os.getcwd(), filename), "r", encoding="Latin-1") as stringfile:
+				content=stringfile.read()
+				for line in content.split("\n"):
+					try:
+						letters=""
+						for letter in line:
+							if letter in printable[:-5]:
+								letters=letters+letter
+						input(letters+"\n")
+					except KeyboardInterrupt:
+						break
+		except Exception as e:
+			print(e)
 def runshellfile(shellfile):
     if not shellfile.endswith(".sh"):
         print("File is not a shell file, shell file extensions are .sh")
@@ -264,7 +280,8 @@ args={
     "python3": python3,
     "echo": echo,
     "runshell": runshellfile,
-    "mv": move
+    "mv": move,
+    "strings": strings
 }
 noargs={
     "ls": ls,
