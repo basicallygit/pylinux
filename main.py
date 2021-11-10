@@ -31,8 +31,8 @@ def ls():
         cwd=os.getcwd()
         for file in os.listdir(cwd):
             print(file)
-    except:
-        print("Error listing files")
+    except Exception as e:
+        print(e)
 def whoami():
     print(checkuser())
 def neofetch():
@@ -54,13 +54,8 @@ def cd(path):
     else:
         try:
             os.chdir(path)
-        except:
-            try:
-                cwd=os.getcwd()
-                fullpath=os.path.join(cwd, path)
-                os.chdir(fullpath)
-            except:
-                print("Could not change to directory: ", path)
+        except Exception as e:
+            print(e)
 def cat(file):
     try:
         with open(file, "r") as f:
@@ -68,25 +63,25 @@ def cat(file):
         print(content)
     except:
         try:
-            with open(os.path.join(os.getcwd(), file), "r") as f:
+            with open(file, "r") as f:
                 content=f.read()
             print(content)
-        except:
-            print("File not found / cannot open file")
+        except Exception as e:
+            print(e)
 def mkdir(directory):
     try:
-        os.mkdir(os.path.join(os.getcwd(), directory))
-    except:
-        print("Could not make directory: ", directory)
+        os.mkdir(directory)
+    except Exception as e:
+        print(e)
 def touch(touchfile):
     try:
-        if not os.path.isfile(os.path.join(os.getcwd(), touchfile)):
+        if not os.path.isfile(touchfile):
             touchfilemake=open(touchfile, "w+")
             touchfilemake.close()
         else:
             print("File exists")
-    except:
-        print("Could not touch file: ", touchfile)
+    except Exception as e:
+        print(e)
 cmdusage={
     "cd": "Usage: cd [.. / full directory path / relative path]",
     "cat": "Usage: cat [fullpath / relative file]",
@@ -105,8 +100,7 @@ cmdusage={
     "ls": "Usage: ls (lists all files and directories in cwd)",
     "whoami": "Usage: whoami (shows username)",
     "neofetch": "Usage: neofetch",
-    "ifconfig": "Usage: ifconfig (brings up internet / ip info)",
-    "strings": "Usage: strings [filename] (see string content of a binary file)"
+    "ifconfig": "Usage: ifconfig (brings up internet / ip info)"
 }
 def man(cmdname):
     print(cmdusage[cmdname])
@@ -140,15 +134,15 @@ def rm(rmparams):
         try:
             rmpath=os.path.join(os.getcwd(), rmparams.split(" ", 1)[-1])
             os.remove(rmpath)
-        except:
-            print("Cannot find / remove file: ", rmparams.split(" ",1 )[-1])
+        except Exception as e:
+            print(e)
     elif rmtype == "-d":
         try:
             if "y" in input("Are you sure? [Y/n]: ").lower():
                 rmpath=os.path.join(os.getcwd(), rmparams.split(" ", 1)[-1])
                 shutil.rmtree(rmpath)
-        except:
-            print("Cannot find / remove directory: ", rmparams.split(" ", 1)[-1])
+        except Exception as e:
+            print(e)
     else:
         print("Unknown file/directory type")
 def toroot():
@@ -185,7 +179,7 @@ def python3(pythonargs):
                     exec(python3cmd)
                 except Exception as error:
                     print(error)
-    elif os.path.isfile(os.path.join(os.getcwd(), pythonargs)) or os.path.isfile(pythonargs):
+    elif os.path.isfile(pythonargs):
         if pythonargs.endswith(".py") or pythonargs.endswith(".txt"):
             with open(pythonargs, "r") as pythonfile:
                 try:
@@ -213,19 +207,19 @@ def echo(args):
     if " >> " not in args:
         print(args)
     else:
-        filename = args.split(" >> ")[1]
-        towrite = args.split(" >> ")[0]
-        if os.path.isfile(os.path.join(os.getcwd(), filename)):
+        filename=args.split(" >> ")[1]
+        towrite=args.split(" >> ")[0]
+        if os.path.isfile(filename):
             if "y" in input("File already exists, are you sure you want to overwrite it? [Y/n]: ").lower():
                 with open(os.path.join(os.getcwd(), filename), "w+") as echofile:
                     echofile.write(towrite)
         else:
-            with open(os.path.join(os.getcwd(), filename), "w+") as echofile:
+            with open(filename, "w+") as echofile:
                 echofile.write(towrite)
 def strings(filename):
-	if os.path.isfile(os.path.join(os.getcwd(), filename)):
+	if os.path.isfile(filename):
 		try:
-			with open(os.path.join(os.getcwd(), filename), "r", encoding="Latin-1") as stringfile:
+			with open(filename, "r", encoding="Latin-1") as stringfile:
 				content=stringfile.read()
 				for line in content.split("\n"):
 					try:
@@ -242,15 +236,15 @@ def runshellfile(shellfile):
     if not shellfile.endswith(".sh"):
         print("File is not a shell file, shell file extensions are .sh")
         return
-    if os.path.isfile(os.path.join(os.getcwd(), shellfile)):
-        file=open(os.path.join(os.getcwd(), shellfile))
+    if os.path.isfile(shellfile):
+        file=open(shellfile)
         content=file.read()
         file.close()
         if content == "":
             print("Empty shell file")
         else:
             for command in content.split("\n"):
-                docommand(command)
+                parsecmd(command)
     else:
         print("File not found in pwd")
 def move(fileargs):
@@ -259,11 +253,18 @@ def move(fileargs):
     cwd=os.getcwd()
     try:
         shutil.move(source, destination)
-    except:
-        try:
-            shutil.move(os.path.join(cwd, source), os.path.join(cwd, destination))
-        except:
-            print("Error moving file")
+    except Exception as e:
+        print(e)
+def grep(grepargs):
+    keyword=grepargs.split(" ", 1)[0]
+    filename=grepargs.split(" ", 1)[1]
+    try:
+        with open(filename, "r") as grepfile:
+            for line in grepfile.read().split("\n"):
+                if keyword in line:
+                    input(line+"\n")
+    except Exception as e:
+        print(e)
 def reboot():
     os.system("shutdown -r -t 0")
 def shutdown():
@@ -282,7 +283,8 @@ args={
     "echo": echo,
     "runshell": runshellfile,
     "mv": move,
-    "strings": strings
+    "strings": strings,
+    "grep": grep
 }
 noargs={
     "ls": ls,
@@ -299,7 +301,7 @@ sudoneeded={
     "passwd": passwd,
     "root": toroot
 }
-def docommand(commandin):
+def parsecmd(commandin):
     try:
         if commandin.startswith("./"):
             command="runshell"
@@ -342,7 +344,7 @@ while True:
     cmd=input("{0}@shell:{1}{2} ".format(checkuser(), currentpath(), checkroot()))
     if cmd=="exit":break
     if " && " not in cmd:
-        docommand(cmd)
+        parsecmd(cmd)
     else:
         for command in cmd.split(" && "):
-            docommand(command)
+            parsecmd(command)
