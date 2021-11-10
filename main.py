@@ -105,7 +105,8 @@ cmdusage={
     "ls": "Usage: ls (lists all files and directories in cwd)",
     "whoami": "Usage: whoami (shows username)",
     "neofetch": "Usage: neofetch",
-    "ifconfig": "Usage: ifconfig (brings up internet / ip info)"
+    "ifconfig": "Usage: ifconfig (brings up internet / ip info)",
+    "strings": "Usage: strings [filename] (see string content of a binary file)"
 }
 def man(cmdname):
     print(cmdusage[cmdname])
