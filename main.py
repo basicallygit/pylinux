@@ -1,4 +1,4 @@
-iimport os
+import os
 from hashlib import md5
 from getpass import getuser
 import subprocess
@@ -29,14 +29,13 @@ def ls():
 def whoami():
     print(checkuser())
 def neofetch():
-    #put your neofetch art here
     print(f"""
                    -`
-                  .o+`			             
-                 `ooo/			  
-                `+oooo:			
-               `+oooooo:		
-               -+oooooo+:		
+                  .o+`			                      _         _   _
+                 `ooo/			  ____   _ __   ___  | |__     | | (_)  _ __    _   _  __  __
+                `+oooo:			 (__  | | '__) / __) |  _ \\    | | | | | '_ \\  | | | | \\ \\/ /
+               `+oooooo:		/ _ \\ | | |   | (__  | | | |   | | | | | | | | | |_| |  >  <
+               -+oooooo+:		\\___,_| |_|    \\___) |_| |_|   |_| |_| |_| |_|  \\__,_| /_/\\_\\
              `/:-:++oooo+:
             `/++++/+++++++:
            `/++++++++++++++:		           {checkuser()}@{_hostname}
@@ -136,10 +135,10 @@ def su(user):
         elif user == "root":
             sudo("root")
 def sethostname(newname):
-    with open(userprofile+"\\root.txt", "w") as f:
+    with open(userprofile+"\\hostname.txt", "w") as f:
         f.write(newname)
-        global _hostname
-        _hostname = newname
+    global _hostname
+    _hostname = newname
 def python3(pythonargs):
     if pythonargs == "term":
         print("Python3 terminal:")
@@ -319,3 +318,4 @@ while True:
     else:
         for command in cmd.split(" && "):
             parsecmd(command)
+    print()
