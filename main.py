@@ -33,7 +33,7 @@ def neofetch():
     --Put your own neofetch ascii art here--
     {checkuser}@{_hostname}
     CPU: {processor()}, {machine}
-    OS Release: (release()}
+    OS Release: {release()}
     """)
 def ifconfig():
     print(subprocess.check_output("ipconfig" ).decode('utf-8'))
