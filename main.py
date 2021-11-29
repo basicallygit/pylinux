@@ -1,4 +1,4 @@
-import os
+iimport os
 from hashlib import md5
 from getpass import getuser
 import subprocess
@@ -7,81 +7,64 @@ from time import sleep
 import shutil
 from socket import gethostname
 from string import printable
+from platform import processor, release, machine
 userisroot=False
 homefolder=os.getcwd()
-rootpasspath=os.path.join("C:\\Users\\{0}".format(getuser()),"root.txt")
-if not os.path.isfile(rootpasspath):
-    sudohash=input("Enter a sudo Password:\n> ")
-    sudohashpswd=md5(sudohash.encode())
-    sudohashpswd=sudohashpswd.hexdigest()
-    with open(rootpasspath, "w") as x:
-        x.write(sudohashpswd)
+userprofile=os.getenv("USERPROFILE")
+if not os.path.isfile(userprofile+"\\root.txt"):
+    with open(userprofile+"\\root.txt", "w") as f:
+        f.write(md5(input("Set root password: ").encode()).hexdigest())
+if not os.path.isfile(userprofile+"\\hostname.txt"):
+    with open(userprofile+"\\hostname.txt", "w") as f:
+        f.write(input("Your desktop's name: "))
+with open(userprofile+"\\hostname.txt", "r") as f:
+    _hostname=f.read()
 def checkuser():
-    if userisroot:
-        return "root"
-    else:
-        return getuser()
+    return "root" if userisroot else getuser()
 def checkroot():
-    if userisroot:
-        return "#"
-    else:
-        return "$"
+    return "#" if userisroot else "$"
 def ls():
-    try:
-        cwd=os.getcwd()
-        for file in os.listdir(cwd):
-            print(file)
-    except Exception as e:
-        print(e)
+    for file in os.listdir(os.getcwd()):
+        print(file)
 def whoami():
     print(checkuser())
 def neofetch():
-    print("""
-neofetch    {}@shell
-art goes
-here                               
-""".format(checkuser()))
+    #put your neofetch art here
+    print(f"""
+                   -`
+                  .o+`			             
+                 `ooo/			  
+                `+oooo:			
+               `+oooooo:		
+               -+oooooo+:		
+             `/:-:++oooo+:
+            `/++++/+++++++:
+           `/++++++++++++++:		           {checkuser()}@{_hostname}
+          `/+++++++ooooooooo/`		           CPU: {processor()}, {machine()}
+         ./ooosssso++osssssso+`		           OS Release: {release()}
+        .oossssso-````/ossssss+`
+       -osssssso.      :ssssssso.
+      :osssssss/        osssso+++.
+     /ossssssss/        +ssssooo/-
+   `/ossssso+/:-        -:/+osssso+-
+  `+sso+:-`                 `.-/+oso:
+ `++:.                           `-/+/
+    """)
 def ifconfig():
     print(subprocess.check_output("ipconfig" ).decode('utf-8'))
 def cd(path):
-    if path=="..":
-        try:
-            os.chdir("..")
-        except:
-            pass
-    elif path=="~":
-        os.chdir(homefolder)
-    else:
-        try:
-            os.chdir(path)
-        except Exception as e:
-            print(e)
+    os.chdir(homefolder if path == "~" else path)
 def cat(file):
-    try:
-        with open(file, "r") as f:
-            content=f.read()
-        print(content)
-    except:
-        try:
-            with open(file, "r") as f:
-                content=f.read()
-            print(content)
-        except Exception as e:
-            print(e)
+    with open(file, "r") as f:
+        print(f.read())
 def mkdir(directory):
-    try:
-        os.mkdir(directory)
-    except Exception as e:
-        print(e)
+    os.mkdir(directory)
 def touch(touchfile):
-    try:
-        if not os.path.isfile(touchfile):
-            touchfilemake=open(touchfile, "w+")
-            touchfilemake.close()
-        else:
-            print("File exists")
-    except Exception as e:
-        print(e)
+    if not os.path.isfile(touchfile):
+        with open(touchfile, "r") as f:
+            pass
+    else:
+        print(f"{touchfile} already exists")
 cmdusage={
     "cd": "Usage: cd [.. / full directory path / relative path]",
     "cat": "Usage: cat [fullpath / relative file]",
@@ -100,20 +83,22 @@ cmdusage={
     "ls": "Usage: ls (lists all files and directories in cwd)",
     "whoami": "Usage: whoami (shows username)",
     "neofetch": "Usage: neofetch",
-    "ifconfig": "Usage: ifconfig (brings up internet / ip info)"
+    "ifconfig": "Usage: ifconfig (brings up internet / ip info)",
+    "grep": "Usage: grep (keyword) (file)",
+    "sethostname": "Usage: sethostname (new hostname)",
+    "color": "Usage: change terminal color (color a",
+    "colour": "Usage: change terminal colour (colour a)"
 }
 def man(cmdname):
-    print(cmdusage[cmdname])
+    if cmdname in cmdusage:
+        print(cmdusage[cmdname])
 def sudo(sudocommand):
-    c = open(rootpasspath)
-    correctsudo = c.read()
-    c.close()
-    inputpasswd=input("[sudo] password for {0}: ".format(checkuser()))
-    inputpasswdhash=md5(inputpasswd.encode())
-    inputpasswdhash=inputpasswdhash.hexdigest()
+    with open(userprofile+"\\root.txt", "r") as c:
+        correctsudo=c.read()
+    inpasswd=md5(input(f"[sudo] password for {checkuser()}: ").encode()).hexdigest()
     sudoparams=sudocommand.split(" ", 1)[-1]
     sudocommand=sudocommand.split()[0]
-    if inputpasswdhash == correctsudo:
+    if inpasswd == correctsudo:
         if sudocommand in args:
             try:
                 args[sudocommand](sudoparams)
@@ -127,46 +112,34 @@ def sudo(sudocommand):
             else:
                 sudoneeded[sudocommand](sudoparams)
     else:
-        print("Incorrect sudo passwd")
-def rm(rmparams):
-    rmtype=rmparams.split()[0]
-    if rmtype == "-f":
-        try:
-            rmpath=os.path.join(os.getcwd(), rmparams.split(" ", 1)[-1])
-            os.remove(rmpath)
-        except Exception as e:
-            print(e)
-    elif rmtype == "-d":
-        try:
-            if "y" in input("Are you sure? [Y/n]: ").lower():
-                rmpath=os.path.join(os.getcwd(), rmparams.split(" ", 1)[-1])
-                shutil.rmtree(rmpath)
-        except Exception as e:
-            print(e)
-    else:
-        print("Unknown file/directory type")
+        print("Incorrect sudo password")
+def rm(file):
+    os.remove(file)
 def toroot():
     global userisroot
     userisroot=True
 def passwd():
-    try:
-        newpasswd=input("Enter new sudo password: ")
-        newpasswdhash=md5(newpasswd.encode())
-        newpasswdhash=newpasswdhash.hexdigest()
-        with open(rootpasspath, "w") as newpass:
-            newpass.write(newpasswdhash)
-        print("Successfully changed sudo password.")
-    except:
-        print("Could not change sudo password")
+    newpasswdhash=md5(input("New root passwd: ").encode()).hexdigest()
+    with open(userprofile+"\\root.txt", "w") as newpass:
+        newpass.write(newpasswdhash)
+    print("Successfully changed sudo password")
+def rmdir(_dir):
+    if "y" in input("Are you sure? [Y/n]: ").lower():
+        shutil.rmtree(_dir)
 def su(user):
     global userisroot
     if user == checkuser():
-        print("You are already logged in as:", checkuser())
+        print("You are already logged in as: ", checkuser())
     else:
         if user == getuser():
             userisroot=False
         elif user == "root":
             sudo("root")
+def sethostname(newname):
+    with open(userprofile+"\\root.txt", "w") as f:
+        f.write(newname)
+        global _hostname
+        _hostname = newname
 def python3(pythonargs):
     if pythonargs == "term":
         print("Python3 terminal:")
@@ -217,21 +190,17 @@ def echo(args):
             with open(filename, "w+") as echofile:
                 echofile.write(towrite)
 def strings(filename):
-	if os.path.isfile(filename):
-		try:
-			with open(filename, "r", encoding="Latin-1") as stringfile:
-				content=stringfile.read()
-				for line in content.split("\n"):
-					try:
-						letters=""
-						for letter in line:
-							if letter in printable[:-5]:
-								letters=letters+letter
-						input(letters+"\n")
-					except KeyboardInterrupt:
-						break
-		except Exception as e:
-			print(e)
+    with open(filename, "r", encoding="Latin-1") as stringfile:
+        content=stringfile.read()
+        for line in content.split("\n"):
+            try:
+                letters=""
+                for letter in line:
+                    if letter in printable[:-5]:
+                        letters=letters+letter
+                    input(letters+"\n")
+            except KeyboardInterrupt:
+                break
 def runshellfile(shellfile):
     if not shellfile.endswith(".sh"):
         print("File is not a shell file, shell file extensions are .sh")
@@ -251,20 +220,18 @@ def move(fileargs):
     source=fileargs.split(" ", 1)[0]
     destination=fileargs.split(" ", 1)[1]
     cwd=os.getcwd()
-    try:
-        shutil.move(source, destination)
-    except Exception as e:
-        print(e)
+    shutil.move(source, destination)
 def grep(grepargs):
     keyword=grepargs.split(" ", 1)[0]
     filename=grepargs.split(" ", 1)[1]
-    try:
-        with open(filename, "r") as grepfile:
-            for line in grepfile.read().split("\n"):
-                if keyword in line:
-                    input(line+"\n")
-    except Exception as e:
-        print(e)
+    with open(filename, "r") as grepfile:
+        for line in grepfile.read().split("\n"):
+            if keyword in line:
+                input(line+"\n")
+def color(_color):
+    os.system(f"color {_color}")
+def colour(_colour):
+    os.system(f"color {_colour}")
 def reboot():
     os.system("shutdown -r -t 0")
 def shutdown():
@@ -284,7 +251,11 @@ args={
     "runshell": runshellfile,
     "mv": move,
     "strings": strings,
-    "grep": grep
+    "grep": grep,
+    "rm": rm,
+    "sethostname": sethostname,
+    "color": color,
+    "colour": colour
 }
 noargs={
     "ls": ls,
@@ -297,7 +268,7 @@ noargs={
     "hostname": hostname
 }
 sudoneeded={
-    "rm": rm,
+    "rmdir": rmdir,
     "passwd": passwd,
     "root": toroot
 }
@@ -309,11 +280,12 @@ def parsecmd(commandin):
         else:
             command=commandin.split(" ", 1)[0]
             params=commandin.split(" ", 1)[-1]
-
         if commandin == "":
             pass
         else:
-            if command in args:
+            if commandin == "clear":
+                os.system("cls")
+            elif command in args:
                 if params == "":
                     print("Expected parameters")
                 else:
@@ -336,12 +308,11 @@ def parsecmd(commandin):
                     print("Sudo privilages needed")
             elif command not in noargs or args or sudoneeded:
                 print("{0} is not a recognized command".format(command))
-            if commandin == "clear":
-                os.system("cls")
-    except:
-        pass
+    except Exception as e:
+        print(e)
 while True:
-    cmd=input("{0}@shell:{1}{2} ".format(checkuser(), currentpath(), checkroot()))
+    cmd=input(f"""\u250F\u2501({checkuser()}@{_hostname})-[{currentpath()}]
+\u2517{checkroot()} """)
     if cmd=="exit":break
     if " && " not in cmd:
         parsecmd(cmd)
