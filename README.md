@@ -1,2 +1,2 @@
 # pylinux
-linux style terminal emulator for windows with most basic bash commands
+linux style bash style interface for windows with most basic bash commands
